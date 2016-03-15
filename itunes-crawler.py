@@ -10,10 +10,21 @@ class AppCrawler:
         self.apps = []
 
     def crawl(self):
+        self.get_app_from_link(self.starting_url)
         return
 
     def get_app_from_link(self, link):
-        return
+        start_page = requests.get(link)
+        tree = html.fromstring(start_page.text)
+
+        name = tree.xpath('//h1[@itemprop="name"]/text()')[0]
+        developer = tree.xpath('//div[@class="left"]/h2/text()')[0]
+        price = tree.xpath('//div[@itemprop="price"]/text()')[0]
+        links = tree.xpath('//div[@class="center-stack"]//*/a[@class="name"]/@href')
+
+        app = App(name, developer, price, links)
+
+        self.apps.append(app)
 
 
 class App:
