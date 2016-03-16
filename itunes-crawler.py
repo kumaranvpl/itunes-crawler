@@ -1,5 +1,6 @@
 from lxml import html
 import requests
+import time
 
 
 class AppCrawler:
@@ -7,11 +8,24 @@ class AppCrawler:
     def __init__(self, starting_url, depth):
         self.starting_url = starting_url
         self.depth = depth
+        self.current_depth = 0
+        self.depth_links = []
         self.apps = []
 
     def crawl(self):
-        self.get_app_from_link(self.starting_url)
-        return
+        app = self.get_app_from_link(self.starting_url)
+        self.apps.append(app)
+        self.depth_links.append(app.links)
+
+        while self.current_depth < self.depth:
+            current_links = []
+            for link in self.depth_links[self.current_depth]:
+                current_app = self.get_app_from_link(link)
+                current_links.extend(current_app.links)
+                self.apps.append(current_app)
+                time.sleep(5)
+            self.current_depth += 1
+            self.depth_links.append(current_links)
 
     def get_app_from_link(self, link):
         start_page = requests.get(link)
@@ -24,7 +38,7 @@ class AppCrawler:
 
         app = App(name, developer, price, links)
 
-        self.apps.append(app)
+        return app
 
 
 class App:
@@ -37,11 +51,11 @@ class App:
 
     def __str__(self):
         return ("Name: " + self.name.encode('UTF-8') +
-                "\r\n Developer: " + self.developer.encode('UTF-8') +
-                "\r\n Price: " + self.price.encode('UTF-8') + "\r\n")
+                "\r\nDeveloper: " + self.developer.encode('UTF-8') +
+                "\r\nPrice: " + self.price.encode('UTF-8') + "\r\n")
 
 
-crawler = AppCrawler('https://itunes.apple.com/in/app/whatsapp-messenger/id310633997', 0)
+crawler = AppCrawler('https://itunes.apple.com/in/app/clash-of-clans/id529479190', 1)
 crawler.crawl()
 
 
